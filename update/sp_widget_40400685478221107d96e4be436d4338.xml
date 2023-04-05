@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sp_widget">
+    <sp_widget action="INSERT_OR_UPDATE">
+        <category>custom</category>
+        <client_script><![CDATA[api.controller=function($rootScope, $scope) {
+  /* widget controller c */
+  var c = this;
+	
+	//creo una funzione che  prende in input un indice, 
+	//memorizza l'id della nota di quell'indice
+	//lo stampa in console
+	//lo memorizza in noteID del rootScope
+	//effettua l'emit sull'evento selectNote, sul quale è in attesa l'altro widget
+	//e gli passa l'id della nota
+	c.selectItem = function(idx) {
+		var id = c.data.notes[idx].sys_id;
+		console.log('Note ID: '+id);
+		$rootScope.noteID = id;
+		$rootScope.$emit('selectNote', id);
+	}
+};]]></client_script>
+        <controller_as>c</controller_as>
+        <css/>
+        <data_table>sp_instance</data_table>
+        <demo_data/>
+        <description/>
+        <docs/>
+        <field_list/>
+        <has_preview>true</has_preview>
+        <id>notes_list</id>
+        <internal>false</internal>
+        <link><![CDATA[function link(scope, element, attrs, controller) {  }]]></link>
+        <name>Notes List</name>
+        <option_schema/>
+        <public>false</public>
+        <roles/>
+        <script><![CDATA[(function() {
+  /* populate the 'data' object */
+  /* e.g., data.table = $sp.getValue('table'); */
+	
+	//creo un array da popolare con le note
+	data.notes=[];
+	
+	
+	//GlideRecord interroga la tabella passata come parametro, in questo caso
+	//la tabella x_snc_createnotes_note.
+	
+	//con l'addQuery prendo salamente le note legate all'user con ID
+	//restituito da gs.getUser().getID(), in questo caso l'utente loggato
+	
+	//ordino quindi per la colonna sys_created_on in modo discenente
+	
+	//effettuo quindi la query ed ho i record risultanti in noteGR
+	var noteGR = new GlideRecord('x_snc_createnotes_note');
+	noteGR.addQuery('user', gs.getUser().getID());
+	noteGR.orderByDesc('sys_created_on');
+	noteGR.query();
+	
+	while(noteGR.next()) {
+		var noteObj = {};
+		
+		//utilizzo il metodo service portal helper per ottenere valori da visualizzare
+		$sp.getRecordDisplayValues(noteObj, noteGR, 'number,title,sys_id');
+		
+		//prendo i primi 20 caratteri della descrizione
+		noteObj.note = noteGR.getValue('note').slice(0,20);
+		
+		//inserisco gli oggetti popolati nell'array
+		data.notes.push(noteObj);
+	}
+})();]]></script>
+        <servicenow>false</servicenow>
+        <sys_class_name>sp_widget</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2023-04-05 10:05:13</sys_created_on>
+        <sys_id>40400685478221107d96e4be436d4338</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>Notes List</sys_name>
+        <sys_package display_value="CreateNotes" source="x_snc_createnotes">df5fd9a5090232007f44e1046c8ff69f</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="CreateNotes">df5fd9a5090232007f44e1046c8ff69f</sys_scope>
+        <sys_update_name>sp_widget_40400685478221107d96e4be436d4338</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2023-04-05 11:18:32</sys_updated_on>
+        <template><![CDATA[<div class="panel panel-default">
+  <div class="panel-heading clearfix">
+    <h3 class="panel-title pull-left">
+      ${Notes}
+    </h3>
+  </div>
+  <div class="list-group">
+    <a class="list-group-item" ng-click="c.selectItem($index)" ng-repeat="note in data.notes">
+      <h4 class="list-group-item-heading">
+        {{note.title}}
+      </h4>
+      <p class="list-group-item-text">
+        {{note.note}}
+      </p>
+    </a>
+  </div>
+</div>]]></template>
+    </sp_widget>
+</record_update>
